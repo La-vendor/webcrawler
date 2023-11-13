@@ -64,10 +64,10 @@ public class ParallelInternalCrawler extends RecursiveAction {
                 return;
             }
         }
-        if (visitedUrlsCollector.contains(url)) {
+
+        if(!visitedUrlsCollector.add(url)) {
             return;
         }
-        visitedUrlsCollector.add(url);
 
         PageParser.Result result = parserFactory.get(url).parse();
 
