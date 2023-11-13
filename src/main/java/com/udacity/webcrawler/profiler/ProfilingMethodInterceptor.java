@@ -24,39 +24,27 @@ final class ProfilingMethodInterceptor implements InvocationHandler {
         this.obj = obj;
     }
 
-    // TODO: You will need to add more instance fields and constructor arguments to this class.
-
-
     @Override
     public Object invoke(Object proxy, Method method, Object[] args) throws Throwable {
+
         Instant start = null;
+        boolean profiled = method.isAnnotationPresent(Profiled.class);
 
-
-        if(method.isAnnotationPresent(Profiled.class)){
-
-            try{
-                start = clock.instant();
-                 return method.invoke(obj, args);
-            }catch (InvocationTargetException e) {
-                throw e.getTargetException();
-            } catch (IllegalAccessException e) {
-                throw new RuntimeException(e);
-            }
-            finally{
-
+        if (profiled) start = clock.instant();
+        try {
+            return method.invoke(obj, args);
+        } catch (InvocationTargetException e) {
+            throw e.getTargetException();
+        } catch (IllegalAccessException e) {
+            throw new RuntimeException(e);
+        } finally {
+            if (profiled) {
                 Duration duration = Duration.between(start, clock.instant());
                 log.record(obj.getClass(), method, duration);
             }
 
-        }else{
-
-            return method.invoke(obj, args);
         }
-        // TODO: This method interceptor should inspect the called method to see if it is a profiled
-        //       method. For profiled methods, the interceptor should record the start time, then
-        //       invoke the method using the object that is being profiled. Finally, for profiled
-        //       methods, the interceptor should record how long the method call took, using the
-        //       ProfilingState methods.
+
 
     }
 }
