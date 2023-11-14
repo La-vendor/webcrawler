@@ -5,13 +5,13 @@ import com.udacity.webcrawler.parser.PageParserFactory;
 
 import java.time.Clock;
 import java.time.Instant;
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.ConcurrentSkipListSet;
 import java.util.concurrent.RecursiveAction;
 import java.util.regex.Pattern;
-import java.util.stream.Collectors;
 
 public class ParallelInternalCrawler extends RecursiveAction {
 
@@ -21,8 +21,8 @@ public class ParallelInternalCrawler extends RecursiveAction {
     private final Instant deadline;
     private final int maxDepth;
     private final List<Pattern> ignoredUrls;
-    public static ConcurrentHashMap<String, Integer> countsCollector = new ConcurrentHashMap<>();
-    public static ConcurrentSkipListSet<String> visitedUrlsCollector = new ConcurrentSkipListSet<>();
+    public static ConcurrentHashMap<String, Integer> countsInternal = new ConcurrentHashMap<>();
+    public static ConcurrentSkipListSet<String> visitedUrlsInternal = new ConcurrentSkipListSet<>();
 
     public ParallelInternalCrawler(
             String url,
@@ -37,20 +37,8 @@ public class ParallelInternalCrawler extends RecursiveAction {
         this.deadline = deadline;
         this.maxDepth = maxDepth;
         this.ignoredUrls = ignoredUrls;
-        countsCollector = counts;
-        visitedUrlsCollector = visitedUrls;
-    }
-
-    private ParallelInternalCrawler updateCrawler(String url) {
-        return new Builder().
-                setUrl(url).
-                setParserFactory(parserFactory).
-                setDeadline(deadline).
-                setMaxDepth(maxDepth - 1).
-                setIgnoredUrls(ignoredUrls).
-                setCounts(countsCollector).
-                setVisitedUrl(visitedUrlsCollector).
-                build();
+        countsInternal = counts;
+        visitedUrlsInternal = visitedUrls;
     }
 
     @Override
@@ -65,17 +53,34 @@ public class ParallelInternalCrawler extends RecursiveAction {
             }
         }
 
-        if(!visitedUrlsCollector.add(url)) {
+        if(!visitedUrlsInternal.add(url)) {
             return;
         }
 
         PageParser.Result result = parserFactory.get(url).parse();
 
-        for (ConcurrentMap.Entry<String, Integer> e : result.getWordCounts().entrySet()) {
-            countsCollector.compute(e.getKey(), (k, v) -> (v == null) ? e.getValue() : e.getValue() + v);
+
+        for (Map.Entry<String, Integer> e : result.getWordCounts().entrySet()) {
+            if (countsInternal.containsKey(e.getKey())) {
+                countsInternal.put(e.getKey(), e.getValue() + countsInternal.get(e.getKey()));
+            } else {
+                countsInternal.put(e.getKey(), e.getValue());
+            }
         }
 
-        List<ParallelInternalCrawler> internalCrawlers = result.getLinks().stream().map(this::updateCrawler).collect(Collectors.toList());
+        List<ParallelInternalCrawler> internalCrawlers = new ArrayList<>();
+
+        for (String link : result.getLinks()) {
+            internalCrawlers.add(new ParallelInternalCrawler.Builder().
+                    setUrl(link).
+                    setParserFactory(parserFactory).
+                    setDeadline(deadline).
+                    setMaxDepth(maxDepth - 1).
+                    setIgnoredUrls(ignoredUrls).
+                    setCounts(countsInternal).
+                    setVisitedUrl(visitedUrlsInternal).
+                    build());
+        }
 
         invokeAll(internalCrawlers);
 

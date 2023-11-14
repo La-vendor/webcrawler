@@ -33,12 +33,17 @@ final class ProfilerImpl implements Profiler {
         this.startTime = ZonedDateTime.now(clock);
     }
 
-    private Boolean profiledClass(Class<?> klass) {
-        List<Method> methods = new ArrayList<>(Arrays.asList(klass.getDeclaredMethods()));
-        if (methods.isEmpty()) {
+    private Boolean isClassProfiled(Class<?> klass) {
+        List<Method> klassMethods = new ArrayList<>(Arrays.asList(klass.getDeclaredMethods()));
+        if (klassMethods.isEmpty()) {
             return false;
         }
-        return methods.stream().anyMatch(m -> m.getAnnotation(Profiled.class) != null);
+        for (Method m : klassMethods) {
+            if (m.getAnnotation(Profiled.class) != null) {
+                return true;
+            }
+        }
+        return false;
     }
 
     @Override
@@ -46,8 +51,8 @@ final class ProfilerImpl implements Profiler {
         Objects.requireNonNull(klass);
         Objects.requireNonNull(delegate);
 
-        if (!profiledClass(klass)) {
-            throw new IllegalArgumentException(klass.getName());
+        if (!isClassProfiled(klass)) {
+            throw new IllegalArgumentException();
         }
 
         Object proxy = Proxy.newProxyInstance(
