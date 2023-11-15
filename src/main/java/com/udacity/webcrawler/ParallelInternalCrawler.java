@@ -16,29 +16,50 @@ import java.util.regex.Pattern;
 public class ParallelInternalCrawler extends RecursiveAction {
 
     private final Clock clock = Clock.systemUTC();
-    private final String url;
-    private final PageParserFactory parserFactory;
-    private final Instant deadline;
-    private final int maxDepth;
-    private final List<Pattern> ignoredUrls;
-    public static ConcurrentHashMap<String, Integer> countsInternal = new ConcurrentHashMap<>();
-    public static ConcurrentSkipListSet<String> visitedUrlsInternal = new ConcurrentSkipListSet<>();
+    private String url;
+    private PageParserFactory parserFactory;
+    private Instant deadline;
+    private int maxDepth;
+    private List<Pattern> ignoredUrls;
+    private ConcurrentHashMap<String, Integer> countsInternal = new ConcurrentHashMap<>();
+    private ConcurrentSkipListSet<String> visitedUrlsInternal = new ConcurrentSkipListSet<>();
 
-    public ParallelInternalCrawler(
-            String url,
-            PageParserFactory parserFactory,
-            Instant deadline,
-            int maxDepth,
-            List<Pattern> ignoredUrls,
-            ConcurrentHashMap<String, Integer> counts,
-            ConcurrentSkipListSet<String> visitedUrls) {
+    public ParallelInternalCrawler() {
+    }
+
+    public ParallelInternalCrawler setUrl(String url) {
         this.url = url;
+        return this;
+    }
+
+    public ParallelInternalCrawler setParserFactory(PageParserFactory parserFactory) {
         this.parserFactory = parserFactory;
+        return this;
+    }
+
+    public ParallelInternalCrawler setDeadline(Instant deadline) {
         this.deadline = deadline;
+        return this;
+    }
+
+    public ParallelInternalCrawler setMaxDepth(int maxDepth) {
         this.maxDepth = maxDepth;
+        return this;
+    }
+
+    public ParallelInternalCrawler setIgnoredUrls(List<Pattern> ignoredUrls) {
         this.ignoredUrls = ignoredUrls;
-        countsInternal = counts;
-        visitedUrlsInternal = visitedUrls;
+        return this;
+    }
+
+    public ParallelInternalCrawler setCountsInternal(ConcurrentHashMap<String, Integer> countsInternal) {
+        this.countsInternal = countsInternal;
+        return this;
+    }
+
+    public ParallelInternalCrawler setVisitedUrlsInternal(ConcurrentSkipListSet<String> visitedUrlsInternal) {
+        this.visitedUrlsInternal = visitedUrlsInternal;
+        return this;
     }
 
     @Override
@@ -53,7 +74,7 @@ public class ParallelInternalCrawler extends RecursiveAction {
             }
         }
 
-        if(!visitedUrlsInternal.add(url)) {
+        if (!visitedUrlsInternal.add(url)) {
             return;
         }
 
@@ -71,77 +92,17 @@ public class ParallelInternalCrawler extends RecursiveAction {
         List<ParallelInternalCrawler> internalCrawlers = new ArrayList<>();
 
         for (String link : result.getLinks()) {
-            internalCrawlers.add(new ParallelInternalCrawler.Builder().
+            internalCrawlers.add(new ParallelInternalCrawler().
                     setUrl(link).
                     setParserFactory(parserFactory).
                     setDeadline(deadline).
                     setMaxDepth(maxDepth - 1).
                     setIgnoredUrls(ignoredUrls).
-                    setCounts(countsInternal).
-                    setVisitedUrl(visitedUrlsInternal).
-                    build());
+                    setCountsInternal(countsInternal).
+                    setVisitedUrlsInternal(visitedUrlsInternal));
         }
 
         invokeAll(internalCrawlers);
-
-    }
-
-    public static final class Builder {
-
-        String url;
-        PageParserFactory parserFactory;
-        Instant deadline;
-        int maxDepth;
-        List<Pattern> ignoredUrls;
-        ConcurrentHashMap<String, Integer> counts;
-        ConcurrentSkipListSet<String> visitedUrl;
-
-        public Builder setUrl(String url) {
-            this.url = url;
-            return this;
-        }
-
-        public Builder setParserFactory(PageParserFactory parserFactory) {
-            this.parserFactory = parserFactory;
-            return this;
-        }
-
-        public Builder setDeadline(Instant deadline) {
-            this.deadline = deadline;
-            return this;
-        }
-
-        public Builder setMaxDepth(int maxDepth) {
-            this.maxDepth = maxDepth;
-            return this;
-        }
-
-        public Builder setIgnoredUrls(List<Pattern> ignoredUrls) {
-            this.ignoredUrls = ignoredUrls;
-            return this;
-        }
-
-        public Builder setCounts(ConcurrentHashMap<String, Integer> counts) {
-            this.counts = counts;
-            return this;
-        }
-
-        public Builder setVisitedUrl(ConcurrentSkipListSet<String> visitedUrl) {
-            this.visitedUrl = visitedUrl;
-            return this;
-        }
-
-
-        public ParallelInternalCrawler build() {
-            return new ParallelInternalCrawler(
-                    this.url,
-                    this.parserFactory,
-                    this.deadline,
-                    this.maxDepth,
-                    this.ignoredUrls,
-                    this.counts,
-                    this.visitedUrl);
-        }
 
     }
 }

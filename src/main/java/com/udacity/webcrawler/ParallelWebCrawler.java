@@ -53,15 +53,14 @@ final class ParallelWebCrawler implements WebCrawler {
 
         if (maxDepth > 0) {
             for (String url : startingUrls) {
-                pool.invoke(new ParallelInternalCrawler.Builder().
+                pool.invoke(new ParallelInternalCrawler().
                         setUrl(url).
                         setParserFactory(parserFactory).
                         setDeadline(deadline).
                         setMaxDepth(maxDepth).
                         setIgnoredUrls(ignoredUrls).
-                        setCounts(counts).
-                        setVisitedUrl(visitedUrls).
-                        build());
+                        setCountsInternal(counts).
+                        setVisitedUrlsInternal(visitedUrls));
             }
         }
         pool.shutdown();
