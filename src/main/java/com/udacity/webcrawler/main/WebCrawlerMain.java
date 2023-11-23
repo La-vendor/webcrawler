@@ -11,9 +11,7 @@ import com.udacity.webcrawler.profiler.Profiler;
 import com.udacity.webcrawler.profiler.ProfilerModule;
 
 import javax.inject.Inject;
-import java.io.BufferedWriter;
 import java.io.OutputStreamWriter;
-import java.io.Writer;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Objects;
@@ -37,26 +35,26 @@ public final class WebCrawlerMain {
 
         CrawlResult result = crawler.crawl(config.getStartPages());
         CrawlResultWriter resultWriter = new CrawlResultWriter(result);
+        OutputStreamWriter outputStreamWriter = new OutputStreamWriter(System.out);
+
+
         if (!config.getResultPath().isEmpty()) {
             resultWriter.write(Paths.get(config.getResultPath()));
+            System.out.println("Crawler results saved in : " + config.getResultPath());
         } else {
-            try(Writer systemOutWriter = new BufferedWriter((new OutputStreamWriter(System.out)))){
-                resultWriter.write(systemOutWriter);
-            }
-
-
+            resultWriter.write(outputStreamWriter);
+            outputStreamWriter.write(System.lineSeparator());
         }
 
         if (!config.getProfileOutputPath().isEmpty()) {
             profiler.writeData(Paths.get(config.getProfileOutputPath()));
+            System.out.println("Profiler data saved in : " + config.getProfileOutputPath());
         } else {
-            try(Writer systemOutWriter = new BufferedWriter((new OutputStreamWriter(System.out)))) {
-                profiler.writeData(systemOutWriter);
-            }
-
+            profiler.writeData(outputStreamWriter);
+            outputStreamWriter.write(System.lineSeparator());
         }
-        // TODO: Write the crawl results to a JSON file (or System.out if the file name is empty)
-        // TODO: Write the profile data to a text file (or System.out if the file name is empty)
+        outputStreamWriter.close();
+
     }
 
     public static void main(String[] args) throws Exception {
@@ -68,7 +66,7 @@ public final class WebCrawlerMain {
         CrawlerConfiguration config;
         if (args.length != 1) {
             config = new ConfigurationLoader(Path.of("src/main/config/sample_config.json")).load();
-        }else{
+        } else {
             config = new ConfigurationLoader(Path.of(args[0])).load();
         }
         new WebCrawlerMain(config).run();

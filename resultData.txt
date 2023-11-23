@@ -1,1 +1,1 @@
-{"wordCounts":{"polska":1489,"content":1253,"odc":1143,"serial":1129,"jest":792},"urlsVisited":190}
+{"wordCounts":{"polska":1489,"content":1253,"odc":1143,"serial":1129,"jest":792},"urlsVisited":190}{"wordCounts":{"":1759,"data":832,"with":762,"online":663,"course":618},"urlsVisited":153}{"wordCounts":{"data":332,"with":216,"udacity":181,"learn":177,"business":152},"urlsVisited":32}{"wordCounts":{"data":332,"with":216,"udacity":181,"learn":177,"business":152},"urlsVisited":32}
