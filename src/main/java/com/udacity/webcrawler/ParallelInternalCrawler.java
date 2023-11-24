@@ -7,7 +7,6 @@ import java.time.Clock;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentSkipListSet;
 import java.util.concurrent.RecursiveAction;
@@ -81,13 +80,9 @@ public class ParallelInternalCrawler extends RecursiveAction {
         PageParser.Result result = parserFactory.get(url).parse();
 
 
-        for (Map.Entry<String, Integer> e : result.getWordCounts().entrySet()) {
-            if (countsInternal.containsKey(e.getKey())) {
-                countsInternal.put(e.getKey(), e.getValue() + countsInternal.get(e.getKey()));
-            } else {
-                countsInternal.put(e.getKey(), e.getValue());
-            }
-        }
+        result.getWordCounts().forEach((key, value) ->
+                countsInternal.merge(key, value, Integer::sum)
+        );
 
         List<ParallelInternalCrawler> internalCrawlers = new ArrayList<>();
 

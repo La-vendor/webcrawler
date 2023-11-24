@@ -36,16 +36,10 @@ public final class CrawlResultWriter {
      */
 
     public void write(Path path) {
-        // This is here to get rid of the unused variable warning.
-        Objects.requireNonNull(path);
-        // TODO: Fill in this method.
 
         try (Writer writer = Files.newBufferedWriter(path, StandardCharsets.UTF_8,  StandardOpenOption.CREATE, StandardOpenOption.APPEND)) {
-
             write(writer);
-
         } catch (IOException e) {
-
         }
     }
 
@@ -56,14 +50,10 @@ public final class CrawlResultWriter {
      */
 
     public void write(Writer writer) {
-        // This is here to get rid of the unused variable warning.
-        Objects.requireNonNull(writer);
-        // TODO: Fill in this method.
+
         JsonFactory jsonFactory = new JsonFactory();
         jsonFactory.configure(JsonGenerator.Feature.AUTO_CLOSE_TARGET, false);
         ObjectWriter objectWriter= new ObjectMapper(jsonFactory).writer().withDefaultPrettyPrinter();
-//        objectMapper.disable(JsonGenerator.Feature.AUTO_CLOSE_TARGET);
-//        objectWriter.without(JsonGenerator.Feature.AUTO_CLOSE_TARGET);
 
         try {
             objectWriter.writeValue(writer, result);
