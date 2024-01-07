@@ -4,6 +4,13 @@ This Java-based web crawler project, initially provided as a single-threaded imp
 has been improved through the course to implement multithreading.
 It's designed to efficiently collect words from websites.
 
+## Technologies used
+* Maven
+* Javax
+* Jackson
+* Jsoup
+* JUnit
+
 ## Features
 * **Enhanced Performance:** Implements multithreading to significantly increase speed and efficiency in the crawling process.
 * **JSON Configuration:** Utilizes JSON configuration files for easy customization.
